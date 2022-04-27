@@ -15,6 +15,9 @@ let video;
 let canvas, ctx;
 const width = 640;
 const height = 480;
+//let canvas = document.querySelector("#canvas");
+
+//const TelegramBot = require('node-telegram-bot-api');
 
 async function make() {
   // get the video
@@ -41,7 +44,13 @@ function detect() {
       return
     }
     objects = results;
+    console.log(objects);
+    //console.log(video)
+    // canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    // let image_data_url = canvas.toDataURL('image/jpeg');
 
+    // // data url of the image
+    // console.log(image_data_url);
     if (objects) {
       draw();
     }
@@ -59,15 +68,48 @@ function draw() {
   for (let i = 0; i < objects.length; i += 1) {
 
     ctx.font = "16px Arial";
-    ctx.fillStyle = "green";
+    ctx.fillStyle = "orange";
     ctx.fillText(objects[i].label, objects[i].x + 4, objects[i].y + 16);
 
     ctx.beginPath();
     ctx.rect(objects[i].x, objects[i].y, objects[i].width, objects[i].height);
-    ctx.strokeStyle = "green";
+    ctx.strokeStyle = "orange";
     ctx.stroke();
     ctx.closePath();
   }
+  //canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  if (objects.length > 0 && objects[0].label == "person") {
+    let image_data_url = canvas.toDataURL('image/jpeg');
+
+
+
+    // // data url of the image
+    console.log(image_data_url);
+
+    //var blob = base64ToBlob(image_data_url.slice(23), 'image/jpeg')
+
+    //var formData = new FormData();
+    //formData.append('picture', image_data_url)
+
+    $.ajax({
+      url: "http://127.0.0.1:5000/telebot",
+      type: "POST",
+      cache: false,
+      contentType: false,
+      processData: false,
+      data: image_data_url
+    })
+      .done(function (e) {
+        alert('done!');
+      })
+
+    setTimeout(function () {
+      //your code to be executed after 1 second
+    }, 5000);
+  }
+
+
 }
 
 // Helper Functions
@@ -93,4 +135,26 @@ function createCanvas(w, h) {
   canvas.height = h;
   document.body.appendChild(canvas);
   return canvas;
+}
+
+function base64ToBlob(base64, mime) {
+  mime = mime || '';
+  var sliceSize = 1024;
+  var byteChars = window.atob(base64);
+  var byteArrays = [];
+
+  for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+    var slice = byteChars.slice(offset, offset + sliceSize);
+
+    var byteNumbers = new Array(slice.length);
+    for (var i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    var byteArray = new Uint8Array(byteNumbers);
+
+    byteArrays.push(byteArray);
+  }
+
+  return new Blob(byteArrays, { type: mime });
 }
